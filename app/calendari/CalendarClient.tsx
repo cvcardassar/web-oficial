@@ -28,7 +28,7 @@ useEffect(() => {
   const hasResult = (m: any) =>
   m.setsTeam !== undefined && m.setsOpponent !== undefined
 
-  const teams = useMemo(() => {
+  const teams = useMemo<string[]>(() => {
   const names = matches.map(
     (m: any) => m.teamRef?.title || m.team
   )
@@ -106,8 +106,10 @@ const nextMatch = useMemo(() => {
           className="border rounded px-4 py-2"
         >
           {teams.map((t) => (
-            <option key={t}>{t}</option>
-          ))}
+  <option key={t} value={t}>
+    {t}
+  </option>
+))}
         </select>
         <div className="flex flex-wrap gap-2 mt-4 mb-6">
 
