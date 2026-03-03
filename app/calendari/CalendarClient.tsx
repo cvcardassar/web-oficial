@@ -28,9 +28,9 @@ useEffect(() => {
   const hasResult = (m: any) =>
   m.setsTeam !== undefined && m.setsOpponent !== undefined
 
-  const teams: string[] = useMemo(() => {
-  const names = matches
-    .map((m: any) => m.teamRef?.title ?? m.team)
+  const teams = useMemo<string[]>(() => {
+  const names = (matches as any[])
+    .map((m) => m.teamRef?.title ?? m.team)
     .filter((name): name is string => typeof name === "string")
 
   return ["Tots", ...Array.from(new Set(names))]
