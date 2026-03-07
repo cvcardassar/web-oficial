@@ -124,11 +124,28 @@ const agendaWeek = await client.fetch(agendaWeekQuery)
     <main>
 
       {/* MATCHDAY BANNER */}
-      {isMatchDay && (
-        <div className="bg-[var(--cardassar-yellow)] text-black text-center py-3 font-semibold">
-          🏐 AVUI HI HA PARTIT!
-        </div>
-      )}
+      {isMatchDay && match && (
+  <div className="fixed bottom-0 left-0 right-0 z-50 bg-[var(--cardassar-yellow)] text-black shadow-lg">
+    <div className="max-w-6xl mx-auto px-4 py-3 flex items-center justify-between text-sm font-semibold">
+
+      <span className="flex items-center gap-2">
+        🏐
+        AVUI {new Date(match.date).toLocaleTimeString([], {
+          hour: "2-digit",
+          minute: "2-digit",
+        })} · {match.team} vs {match.opponent}
+      </span>
+
+      <a
+        href="#proper-partit"
+        className="bg-black text-white px-3 py-1 rounded text-xs font-bold"
+      >
+        VEURE
+      </a>
+
+    </div>
+  </div>
+)}
 
       {/* HERO */}
       <HomeHero heroes={heroes} />
@@ -137,7 +154,7 @@ const agendaWeek = await client.fetch(agendaWeekQuery)
 
       {/* NEXT MATCH */}
 {match && (
-  <section className="border-t">
+  <section id="proper-partit" className="border-t">
 
   {/* HEADER */}
   <div className="bg-black text-white py-6 border-b-4 border-[var(--cardassar-yellow)]">
@@ -328,7 +345,7 @@ const agendaWeek = await client.fetch(agendaWeekQuery)
 
       {/* INFO */}
       <div className="mt-6 text-center text-xs text-gray-500">
-        {m.competition} · {m.venue}
+        {m.competition} · {m.venue} · {m.venue} 
       </div>
 
     </div>

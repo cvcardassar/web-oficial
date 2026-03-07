@@ -225,9 +225,10 @@ export default function CalendarClient({ matches }: { matches: any[] }) {
                         </p>
 
                         <p className="text-sm text-neutral-500">
-                          {m.competition} · {m.venue}
+                          {m.competition}
+                          {m.roundLabel && <> · {m.roundLabel}</>}
+                          {m.venue && <> · {m.venue}</>}
                         </p>
-
                         {isToday && (
                           <span className="text-xs bg-[var(--cardassar-yellow)] text-black px-2 py-0.5 rounded">
                             AVUI
