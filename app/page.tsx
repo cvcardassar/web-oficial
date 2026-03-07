@@ -16,7 +16,13 @@ const newsQuery = `*[_type == "news"] | order(publishedAt desc)[0...3]`
 
 const nextMatchQuery = `
   *[_type == "match" && date >= now()]
-  | order(date asc)[0]
+  | order(date asc)[0]{
+    ...,
+    teamRef->{
+      title,
+      logo
+    }
+  }
 `
 
 const lastSeniorResultQuery = `
@@ -50,7 +56,13 @@ const agendaWeekQuery = `
     _type == "match" &&
     date >= now()
   ]
-  | order(date asc)[0...5]
+  | order(date asc)[0...5]{
+    ...,
+    teamRef->{
+      title,
+      logo
+    }
+  }
 `
 
 export default async function Home() {
@@ -123,175 +135,443 @@ const agendaWeek = await client.fetch(agendaWeekQuery)
 
       
 
-      {/* NEXT MATCH SCOREBOARD */}
-      {match && (
-        <section className="bg-black text-white py-24">
-          <div className="max-w-6xl mx-auto px-6">
+      {/* NEXT MATCH */}
+{match && (
+  <section className="border-t">
 
-            <p className="text-center text-sm text-gray-400 mb-8 tracking-widest">
-              PRÒXIM PARTIT
-            </p>
-
-            <div className="bg-gradient-to-b from-neutral-900 to-black border border-neutral-800 rounded-3xl p-12 shadow-xl">
-
-              <div className="grid grid-cols-3 items-center gap-6">
-                {isHomeGame ? (
-                  <>
-                    <TeamBlock logo={match.teamLogo} name={match.team} />
-                    <VS />
-                    <TeamBlock logo={match.opponentLogo} name={match.opponent} />
-                  </>
-                ) : (
-                  <>
-                    <TeamBlock logo={match.opponentLogo} name={match.opponent} />
-                    <VS />
-                    <TeamBlock logo={match.teamLogo} name={match.team} />
-                  </>
-                )}
-              </div>
-
-              <div className="text-center mt-12 space-y-3">
-                <p className="text-xl font-semibold">
-                  {new Date(match.date).toLocaleDateString()}
-                </p>
-                <p className="text-3xl font-bold text-[var(--cardassar-yellow)]">
-                  {new Date(match.date).toLocaleTimeString([], {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
-                </p>
-                <p className="text-gray-400">
-                  {match.competition} · {match.venue}
-                </p>
-              </div>
-
-            </div>
-          </div>
-        </section>
-      )}
-
-      {agendaWeek.length > 0 && (
-  <section className="bg-neutral-100 py-20 border-t">
-    <div className="max-w-6xl mx-auto px-6">
-
-      <h2 className="text-3xl font-bold mb-10 text-center">
-        Agenda de la setmana
+  {/* HEADER */}
+  <div className="bg-black text-white py-6 border-b-4 border-[var(--cardassar-yellow)]">
+    <div className="max-w-6xl mx-auto px-6 text-center">
+      <p className="text-xs tracking-widest text-white/60">
+        PROPER ENFRONTAMENT
+      </p>
+      <h2 className="text-3xl md:text-4xl font-black tracking-wide">
+        PRÒXIM PARTIT
       </h2>
+    </div>
+  </div>
 
-      <div className="space-y-4">
+  {/* CONTINGUT */}
+  <div className="bg-neutral-100">
 
-        {agendaWeek.map((m: any) => (
-          <div
-            key={m._id}
-            className="flex justify-between items-center bg-white rounded-lg p-4 shadow-sm"
-          >
+    <div className="max-w-6xl mx-auto px-6 py-12">
 
-            <div>
-              <p className="font-semibold">
-                {m.team} vs {m.opponent}
-              </p>
+      <div className="grid lg:grid-cols-5 items-center gap-8 text-center">
 
-              <p className="text-sm text-gray-500">
-                {m.competition} · {m.venue}
-              </p>
-            </div>
+        {/* DATA */}
+        <div>
+          <p className="text-sm text-gray-500">
+            {new Date(match.date).toLocaleDateString()}
+          </p>
+          <p className="text-5xl font-black text-[var(--cardassar-yellow)] mt-2">
+            {new Date(match.date).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </p>
+        </div>
 
-            <div className="text-right">
-              <p className="font-semibold">
-                {new Date(m.date).toLocaleDateString()}
-              </p>
-
-              <p className="text-sm text-gray-500">
-                {new Date(m.date).toLocaleTimeString([], {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
-              </p>
-            </div>
-
+        {/* LOCAL */}
+        <div className="flex flex-col items-center space-y-3">
+          <div className="h-28 flex items-center justify-center">
+            {match.teamRef?.logo && (
+              <img
+                src={urlFor(match.teamRef.logo).width(240).url()}
+                className="max-h-full object-contain"
+              />
+            )}
           </div>
-        ))}
+          <p className="font-semibold text-lg">
+            {match.team}
+          </p>
+          {match.homeAway === "home" && (
+            <span className="bg-red-600 text-white text-xs px-4 py-1 font-bold">
+              CASA
+            </span>
+          )}
+        </div>
+
+        {/* VS */}
+        <div className="text-6xl font-black text-[var(--cardassar-yellow)]">
+          VS
+        </div>
+
+        {/* VISITANT */}
+        <div className="flex flex-col items-center space-y-3">
+          <div className="h-28 flex items-center justify-center">
+            {match.opponentLogo && (
+              <img
+                src={urlFor(match.opponentLogo).width(240).url()}
+                className="max-h-full object-contain"
+              />
+            )}
+          </div>
+          <p className="font-semibold text-lg">
+            {match.opponent}
+          </p>
+          {match.homeAway === "away" && (
+            <span className="bg-gray-700 text-white text-xs px-4 py-1 font-bold">
+              FORA
+            </span>
+          )}
+        </div>
+
+        {/* INFO */}
+        <div className="text-sm text-gray-600">
+          {match.competition} <br />
+          {match.venue}
+        </div>
 
       </div>
 
     </div>
-  </section>
+
+  </div>
+
+</section>
 )}
 
-      {/* LAST RESULT */}
-      {lastSeniorResult?.setsTeam !== undefined && (
-  <section className="bg-neutral-950 text-white py-20">
-    <div className="max-w-5xl mx-auto px-6">
+     <section className="bg-white py-16 md:py-24 border-t">
+  <div className="max-w-5xl mx-auto px-4 md:px-6">
 
-      <p className="text-center text-sm text-gray-400 mb-8 tracking-widest">
-        ÚLTIM RESULTAT
-      </p>
+    <div className="bg-black text-white py-6 mb-12">
+  <div className="max-w-6xl mx-auto px-6">
+    <h2 className="text-2xl md:text-3xl font-black tracking-wide text-center">
+      AGENDA DE LA SETMANA
+    </h2>
+  </div>
+</div>
 
-      <div className="bg-neutral-900 border border-neutral-800 rounded-3xl p-10 shadow-lg">
+    <div className="space-y-4">
 
-        <div className="grid grid-cols-3 items-center gap-6">
+      {agendaWeek.map((m: any, index: number) => {
 
-          {/* Equip */}
-          <div className="flex flex-col items-center">
-            {lastSeniorResult.teamLogo && (
-              <img
-                src={urlFor(lastSeniorResult.teamLogo).width(120).url()}
-                className="mb-3"
-              />
-            )}
-            <p className="font-semibold text-center">
-              {lastSeniorResult.team}
-            </p>
-          </div>
+        const date = new Date(m.date)
+        const day = date.toLocaleDateString('ca-ES', { day: '2-digit' })
+        const month = date.toLocaleDateString('ca-ES', { month: 'short' })
+        const time = date.toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit',
+        })
 
-          {/* Sets */}
-          <div className="text-center">
-            <p className={`text-6xl font-black ${resultColor}`}>
-              {lastSeniorResult.setsTeam} — {lastSeniorResult.setsOpponent}
-            </p>
-            {lastSeniorResult.setsDetail?.length > 0 && (
-              <div className="flex flex-wrap justify-center gap-3 mt-6">
+        const isHome = m.homeAway === "home"
 
-                {lastSeniorResult.setsDetail.map((set: any, i: number) => (
-                  <div
-                    key={i}
-                    className="bg-neutral-800 rounded-lg px-4 py-2 text-sm font-semibold"
-                  >
-                    {set.team} — {set.opponent}
-                  </div>
-                ))}
+        return (
+  <div
+    key={m._id}
+    className={`
+      border-b border-neutral-200
+      ${index % 2 === 0 ? "bg-white" : "bg-neutral-100"}
+    `}
+  >
+    {/* ================= MOBILE ================= */}
+    <div className="lg:hidden px-4 py-8">
 
-              </div>
-            )}
-            <p className="text-sm text-gray-400 mt-1">
-              Sets
-            </p>
-          </div>
+      {/* DATA */}
+      <div className="text-center mb-5">
+        <p className="text-xs text-gray-400">
+          {date.getFullYear()}
+        </p>
 
-          {/* Rival */}
-          <div className="flex flex-col items-center">
-            {lastSeniorResult.opponentLogo && (
-              <img
-                src={urlFor(lastSeniorResult.opponentLogo).width(120).url()}
-                className="mb-3"
-              />
-            )}
-            <p className="font-semibold text-center">
-              {lastSeniorResult.opponent}
-            </p>
-          </div>
+        <p className="text-2xl font-bold tracking-wide">
+          {month.toUpperCase()} {day}
+          <span className="text-sm ml-2 text-[var(--cardassar-yellow)] font-semibold">
+            {time}
+          </span>
+        </p>
+      </div>
 
+      {/* EQUIPS */}
+      <div className="grid grid-cols-3 items-center text-center">
+
+        {/* LOCAL */}
+        <div className="flex flex-col items-center space-y-2">
+          {m.teamRef?.logo && (
+            <img
+              src={urlFor(m.teamRef.logo).width(140).url()}
+              className="w-24 h-24 object-contain"
+            />
+          )}
+          <p className="text-sm font-semibold">
+            {m.team}
+          </p>
+          {m.homeAway === "home" && (
+            <span className="bg-red-600 text-white text-xs px-3 py-1">
+              CASA
+            </span>
+          )}
         </div>
 
-        <div className="text-center mt-6 text-gray-400 text-sm">
+        <div className="text-2xl font-black">
+          VS
+        </div>
+
+        {/* VISITANT */}
+        <div className="flex flex-col items-center space-y-2">
+          {m.opponentLogo && (
+            <img
+              src={urlFor(m.opponentLogo).width(140).url()}
+              className="w-16 h-16 object-contain"
+            />
+          )}
+          <p className="text-sm font-semibold">
+            {m.opponent}
+          </p>
+          {m.homeAway === "away" && (
+            <span className="bg-gray-600 text-white text-xs px-3 py-1">
+              FORA
+            </span>
+          )}
+        </div>
+
+      </div>
+
+      {/* INFO */}
+      <div className="mt-6 text-center text-xs text-gray-500">
+        {m.competition} · {m.venue}
+      </div>
+
+    </div>
+
+    {/* ================= DESKTOP ================= */}
+    <div className="hidden lg:grid grid-cols-5 items-center px-10 py-10">
+
+      {/* DATA */}
+      <div className="text-center">
+        <p className="text-sm text-gray-400">
+          {date.getFullYear()}
+        </p>
+        <p className="text-2xl font-black">
+          {month.toUpperCase()} {day}
+        </p>
+        <p className="text-sm text-[var(--cardassar-yellow)] font-semibold">
+          {time}
+        </p>
+      </div>
+
+      {/* LOCAL */}
+      <div className="flex flex-col items-center space-y-2">
+        {m.teamRef?.logo && (
+          <img
+            src={urlFor(m.teamRef.logo).width(180).url()}
+            className="w-20 h-20 object-contain"
+          />
+        )}
+        <p className="font-semibold">
+          {m.team}
+        </p>
+        {m.homeAway === "home" && (
+          <span className="bg-red-600 text-white text-xs px-3 py-1">
+            CASA
+          </span>
+        )}
+      </div>
+
+      {/* VS */}
+      <div className="text-4xl font-black text-center">
+        VS
+      </div>
+
+      {/* VISITANT */}
+      <div className="flex flex-col items-center space-y-2">
+        {m.opponentLogo && (
+          <img
+            src={urlFor(m.opponentLogo).width(180).url()}
+            className="w-20 h-20 object-contain"
+          />
+        )}
+        <p className="font-semibold">
+          {m.opponent}
+        </p>
+        {m.homeAway === "away" && (
+          <span className="bg-gray-600 text-white text-xs px-3 py-1">
+            FORA
+          </span>
+        )}
+      </div>
+
+      {/* INFO */}
+      <div className="text-center text-sm text-gray-500">
+        {m.competition} <br />
+        {m.venue}
+      </div>
+
+    </div>
+  </div>
+)
+      })}
+
+    </div>
+
+  </div>
+</section>
+
+      {/* LAST RESULT */}
+{lastSeniorResult?.setsTeam !== undefined && (
+<section className="border-t">
+
+  {/* HEADER */}
+  <div className="bg-black text-white py-6 border-b-4 border-[var(--cardassar-yellow)]">
+    <div className="max-w-6xl mx-auto px-6 text-center">
+      <p className="text-xs tracking-widest text-white/60">
+        DARRER PARTIT
+      </p>
+      <h2 className="text-3xl md:text-4xl font-black tracking-wide">
+        ÚLTIM RESULTAT
+      </h2>
+    </div>
+  </div>
+
+  {/* CONTINGUT */}
+  <div className="bg-neutral-100">
+    <div className="max-w-6xl mx-auto">
+
+      {/* ================= MOBILE ================= */}
+      <div className="lg:hidden px-6 py-12 text-center space-y-8">
+
+        {/* LOGO LOCAL */}
+        <div className="flex flex-col items-center space-y-4">
+          <div className="h-32 flex items-center justify-center">
+            {lastSeniorResult.teamLogo && (
+              <img
+                src={urlFor(lastSeniorResult.teamLogo).width(240).url()}
+                className="max-h-full object-contain"
+              />
+            )}
+          </div>
+          <p className="font-semibold text-lg">
+            {lastSeniorResult.team}
+          </p>
+        </div>
+
+        {/* RESULTAT */}
+        <p
+          className={`text-6xl font-black ${
+            lastSeniorResult.setsTeam >
+            lastSeniorResult.setsOpponent
+              ? "text-green-500"
+              : "text-red-500"
+          }`}
+        >
+          {lastSeniorResult.setsTeam}
+          <span className="mx-4 text-black">—</span>
+          {lastSeniorResult.setsOpponent}
+        </p>
+
+        {/* PARCIALS */}
+        {lastSeniorResult.setsDetail?.length > 0 && (
+          <div className="flex flex-wrap justify-center gap-3">
+            {lastSeniorResult.setsDetail.map((set: any, i: number) => (
+              <span
+                key={i}
+                className="bg-white border border-neutral-300 px-4 py-2 text-sm"
+              >
+                {set.team} — {set.opponent}
+              </span>
+            ))}
+          </div>
+        )}
+
+        {/* LOGO VISITANT */}
+        <div className="flex flex-col items-center space-y-4 pt-6">
+          <div className="h-28 flex items-center justify-center">
+            {lastSeniorResult.opponentLogo && (
+              <img
+                src={urlFor(lastSeniorResult.opponentLogo).width(240).url()}
+                className="max-h-full object-contain"
+              />
+            )}
+          </div>
+          <p className="font-semibold text-lg">
+            {lastSeniorResult.opponent}
+          </p>
+        </div>
+
+        {/* INFO */}
+        <div className="text-sm text-gray-600 pt-6">
           {lastSeniorResult.competition} ·{" "}
           {new Date(lastSeniorResult.date).toLocaleDateString()}
         </div>
 
       </div>
 
+      {/* ================= DESKTOP ================= */}
+      <div className="hidden lg:grid grid-cols-5 items-center py-16 px-10 text-center">
+
+        {/* LOCAL */}
+        <div className="flex flex-col items-center space-y-4">
+          <div className="h-32 flex items-center justify-center">
+            {lastSeniorResult.teamLogo && (
+              <img
+                src={urlFor(lastSeniorResult.teamLogo).width(260).url()}
+                className="max-h-full object-contain"
+              />
+            )}
+          </div>
+          <p className="font-semibold text-lg">
+            {lastSeniorResult.team}
+          </p>
+        </div>
+
+        {/* MARCADOR CENTRAL */}
+        <div className="col-span-3 flex flex-col items-center">
+
+          <p
+            className={`text-8xl font-black ${
+              lastSeniorResult.setsTeam >
+              lastSeniorResult.setsOpponent
+                ? "text-green-500"
+                : "text-red-500"
+            }`}
+          >
+            {lastSeniorResult.setsTeam}
+            <span className="mx-8 text-black">—</span>
+            {lastSeniorResult.setsOpponent}
+          </p>
+
+          {/* PARCIALS */}
+          {lastSeniorResult.setsDetail?.length > 0 && (
+            <div className="flex flex-wrap justify-center gap-3 mt-8">
+              {lastSeniorResult.setsDetail.map((set: any, i: number) => (
+                <span
+                  key={i}
+                  className="bg-white border border-neutral-300 px-4 py-2 text-sm"
+                >
+                  {set.team} — {set.opponent}
+                </span>
+              ))}
+            </div>
+          )}
+
+          {/* INFO */}
+          <div className="text-sm text-gray-600 mt-8">
+            {lastSeniorResult.competition} ·{" "}
+            {new Date(lastSeniorResult.date).toLocaleDateString()}
+          </div>
+
+        </div>
+
+        {/* VISITANT */}
+        <div className="flex flex-col items-center space-y-4">
+          <div className="h-32 flex items-center justify-center">
+            {lastSeniorResult.opponentLogo && (
+              <img
+                src={urlFor(lastSeniorResult.opponentLogo).width(260).url()}
+                className="max-h-full object-contain"
+              />
+            )}
+          </div>
+          <p className="font-semibold text-lg">
+            {lastSeniorResult.opponent}
+          </p>
+        </div>
+
+      </div>
+
     </div>
-  </section>
+  </div>
+
+</section>
 )}
 
 
@@ -305,7 +585,7 @@ const agendaWeek = await client.fetch(agendaWeekQuery)
         Últims resultats
       </h2>
 
-      <div className="space-y-4">
+      <div>
 
         {weekResults.map((m: any) => (
           <div
